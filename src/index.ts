@@ -24,17 +24,29 @@ app.use(middlewareLogResponses);
 app.use("/app", middlewareMetricsInc, express.static("./src/app"))
 app.use("/assets", express.static("./src/app/assets"))
 
-app.get('/healthz', (req: Request, res: Response) => {
+app.get('/api/healthz', (req: Request, res: Response) => {
     res.status(200)
     res.set('Content-Type', 'text/plain; charset=utf-8')
     res.send("OK");
 });
 
-app.get('/metrics', (req: Request, res: Response) => {
-    res.send(`Hits: ${config.fileserverHits}`);
+app.get('/admin/metrics', (req: Request, res: Response) => {
+    res.set('Content-Type', 'text/plain; charset=utf-8')
+    res.format({
+        'text/html'() {
+            res.send(`
+                <html>
+                    <body>
+                        <h1>Welcome, Chirpy Admin</h1>
+                        <p>Chirpy has been visited ${config.fileserverHits} times!</p>
+                    </body>
+                </html>`
+            );
+        }
+    });
 });
 
-app.get('/reset', (req: Request, res: Response) => {
+app.get('/admin/reset', (req: Request, res: Response) => {
     config.fileserverHits = 0;
     res.send(`Hits: ${config.fileserverHits}`);
 });
