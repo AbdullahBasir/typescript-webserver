@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { RespondWithError, RespondWithJSON } from './json.js';
 
 export const validateHandler = (req: Request, res: Response) => {
     type parameters = {
@@ -15,21 +16,14 @@ export const validateHandler = (req: Request, res: Response) => {
         try {
             params = JSON.parse(body);
         } catch (error) {
-            res.status(400).send("Invalid JSON");
+            RespondWithError(res, 400, "Invalid JSON");
+            return
         }
 
         if (params.body.length >= 140) {
-            res.status(400).format({
-                'appliation/json'() {
-                    res.send({error: 'Chirp is too long'});
-                }
-            });
+            RespondWithError(res, 400, "Chirp is too long");
         } else {
-            res.status(200).format({
-                'appliation/json'() {
-                    res.send({valid: true});
-                }
-            });
+            RespondWithJSON(res, 200, { valid: true });
         }
     });
 }
