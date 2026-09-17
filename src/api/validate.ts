@@ -5,25 +5,10 @@ export const validateHandler = (req: Request, res: Response) => {
     type parameters = {
         body: string;
     };
-    let body = "";
+    const params: parameters = req.body;
 
-    req.on("data", (chunk) => {
-        body += chunk;
-    });
-
-    let params: parameters;
-    req.on("end", () => {
-        try {
-            params = JSON.parse(body);
-        } catch (error) {
-            RespondWithError(res, 400, "Invalid JSON");
-            return
-        }
-
-        if (params.body.length >= 140) {
-            RespondWithError(res, 400, "Chirp is too long");
-        } else {
-            RespondWithJSON(res, 200, { valid: true });
-        }
-    });
+    if (params.body.length >= 140) {
+        RespondWithError(res, 400, "Chirp is too long");
+    }
+    RespondWithJSON(res, 200, { valid: true });
 }

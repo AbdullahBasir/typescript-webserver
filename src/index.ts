@@ -9,6 +9,7 @@ const app: Express = express();
 const port = 8080;
 
 app.use(middlewareLogResponses);
+app.use(express.json());
 app.use("/app", middlewareMetricsInc, express.static("./src/app"))
 app.use("/assets", express.static("./src/app/assets"))
 
