@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction} from 'express';
 import { config } from '../config.js';
+import { RespondWithError } from "./json.js";
 
 export const middlewareLogResponses = (req: Request, res: Response, next: NextFunction) => {
     res.on("finish", () => {
@@ -16,3 +17,9 @@ export const middlewareMetricsInc = (req: Request, res: Response, next: NextFunc
     config.fileserverHits++;
     next()
 };
+
+export const middlewareErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+    let message = "Something went wrong on our end";
+    console.log(err.message);
+    RespondWithError(res, 500, message);
+}
