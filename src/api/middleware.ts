@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction} from 'express';
 import { config } from '../config.js';
+import { BadRequest, Unauthorized, Forbidden, NotFound } from '../errors.js';
 import { RespondWithError } from "./json.js";
 
 export const middlewareLogResponses = (req: Request, res: Response, next: NextFunction) => {
@@ -19,7 +20,25 @@ export const middlewareMetricsInc = (req: Request, res: Response, next: NextFunc
 };
 
 export const middlewareErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+    let statusCode = 500;
     let message = "Something went wrong on our end";
-    console.log(err.message);
-    RespondWithError(res, 500, message);
+
+    if (err instanceof BadRequest) {
+        statusCode = 400;
+        message = err.message;
+    } else if (err instanceof Unauthorized) {
+        statusCode = 401;
+        message = err.message;
+    } else if (err instanceof Forbidden) {
+        statusCode = 403;
+        message = err.message;
+    } else if (err instanceof NotFound) {
+        statusCode = 404;
+        message = err.message;
+    }
+
+    if (statusCode >= 500) {
+        console.log(err.message);
+    }
+    RespondWithError(res, statusCode, message);
 }
