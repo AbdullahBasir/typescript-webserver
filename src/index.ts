@@ -3,12 +3,13 @@ import { middlewareErrorHandler, middlewareLogResponses, middlewareMetricsInc } 
 import { metricsHandler } from './api/metrics.js';
 import { healthHandler } from './api/health.js';
 import { resetHandler } from './api/reset.js';
-import { createChirpHandler } from './api/chirps.js'
+import { createChirpHandler } from './api/create_chirps.js'
 import { createUserHandler } from './api/users.js'
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { config } from "./config.js"
+import { getChirpsHandler } from './api/get_chirps.js';
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig);
@@ -36,6 +37,10 @@ app.post('/api/chirps', (req, res, next) => {
 
 app.post('/api/users', (req, res, next) => {
     Promise.resolve(createUserHandler(req, res)).catch(next);
+})
+
+app.get('/api/chirps', (req, res, next) => {
+    Promise.resolve(getChirpsHandler(req, res)).catch(next);
 })
 
 app.use(middlewareErrorHandler);
