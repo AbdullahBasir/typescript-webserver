@@ -8,6 +8,7 @@ type Config = {
 type APIConfig = {
   fileserverHits: number;
   port: number;
+  platform: string;
 };
 
 type DBConfig = {
@@ -25,7 +26,6 @@ const envOrThrow = (key: string) => {
   return value;
 }
 
-const parsedPort = parseInt(envOrThrow("PORT"), 10);
 const migrationConfig: MigrationConfig = {
   migrationsFolder: "./src/db/migrations",
 }
@@ -33,7 +33,8 @@ const migrationConfig: MigrationConfig = {
 export const config: Config = {
   api: {
     fileserverHits: 0,
-    port: parsedPort,
+    port: Number(envOrThrow("PORT")),
+    platform: envOrThrow("PLATFORM"),
   },
   db: {
     url: envOrThrow("DB_URL"),

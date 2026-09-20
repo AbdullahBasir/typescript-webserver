@@ -4,6 +4,7 @@ import { metricsHandler } from './api/metrics.js';
 import { healthHandler } from './api/health.js';
 import { resetHandler } from './api/reset.js';
 import { validateHandler } from './api/validate.js'
+import { createUserHandler } from './api/users.js'
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -25,13 +26,17 @@ app.get('/api/healthz', (req, res, next) => {
 app.get('/admin/metrics', (req, res, next) => {
     Promise.resolve(metricsHandler(req, res)).catch(next);
 });
-app.get('/admin/reset', (req, res, next) => {
+app.post('/admin/reset', (req, res, next) => {
     Promise.resolve(resetHandler(req, res)).catch(next);
 });
 
 app.post('/api/validate_chirp', (req, res, next) => {
     Promise.resolve(validateHandler(req, res)).catch(next);
 });
+
+app.post('/api/users', (req, res, next) => {
+    Promise.resolve(createUserHandler(req, res)).catch(next);
+})
 
 app.use(middlewareErrorHandler);
 
