@@ -4,9 +4,15 @@ import { metricsHandler } from './api/metrics.js';
 import { healthHandler } from './api/health.js';
 import { resetHandler } from './api/reset.js';
 import { validateHandler } from './api/validate.js'
+import postgres from "postgres";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { config } from "./config.js"
+
+const migrationClient = postgres(config.db.url, { max: 1 });
+await migrate(drizzle(migrationClient), config.db.migrationConfig);
 
 const app: Express = express();
-const port = 8080;
 
 app.use(middlewareLogResponses);
 app.use(express.json());
@@ -29,6 +35,6 @@ app.post('/api/validate_chirp', (req, res, next) => {
 
 app.use(middlewareErrorHandler);
 
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+app.listen(config.api.port, () => {
+    console.log(`Server is running at http://localhost:${config.api.port}`);
 });

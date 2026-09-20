@@ -3,9 +3,9 @@ import { config } from "./src/config";
 
 export default defineConfig({
   schema: "src/db/schema.ts",
-  out: "src/migrations",
+  out: "src/db/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: config.dbUrl,
+    url: config.db.url,
   },
 });
