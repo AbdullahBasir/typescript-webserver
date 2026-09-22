@@ -1,6 +1,8 @@
 import * as argon2 from 'argon2';
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { Unauthorized } from '../errors.js';
+import { BadRequest, Unauthorized } from '../errors.js';
+import { Request } from 'express';
+import { config } from '../config.js';
 
 export async function hashPassword(password: string): Promise<string> {
     try {
@@ -26,7 +28,7 @@ export function makeJWT(userID: string, expiresIn: number, secret: string): stri
     const timeNow: number = Math.floor(Date.now() / 1000);
 
     const signPayload: payload = {
-        iss: "chirpy",
+        iss: config.jwt.issuer,
         sub: userID,
         iat: timeNow,
         exp: timeNow + expiresIn,
@@ -42,8 +44,22 @@ export function validateJWT(tokenString: string, secret: string): string {
     }
 
     const userId = token.sub;
-    if (!userId || typeof userId === "undefined") {
+    if (!userId) {
         throw new Unauthorized("token is invalid or has expired");
     }
     return userId;
+}
+
+export function getBearerToken(req: Request): string {
+    const header = req.get('Authorization');
+    if (!header) {
+        throw new BadRequest("Malformed authorization header");
+    }
+    
+    const splitHeader = header.trim().replace(/\s+/g, " ").split(" ");
+    if (splitHeader.length < 2 || splitHeader[0] !== "Bearer") {
+        throw new BadRequest("Malformed authorization header");
+    }
+
+    return splitHeader[1];
 }

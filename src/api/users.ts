@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { createUser, userLogin } from '../db/queries/users.js';
 import { RespondWithJSON } from './json.js';
-import { BadRequest, NotFound, Unauthorized } from '../errors.js';
-import { hashPassword, checkPasswordHash } from '../auth/auth.js';
+import { BadRequest, Unauthorized } from '../errors.js';
+import { hashPassword, checkPasswordHash, getBearerToken, makeJWT } from '../auth/auth.js';
 import { userResponse } from './user_response.js';
+import { config } from '../config.js'
 
 export const createUserHandler = async (req: Request, res: Response) => {
     type parameters = {
@@ -35,15 +36,24 @@ export const createUserHandler = async (req: Request, res: Response) => {
     RespondWithJSON(res, 201, ommitted);
 }
 
+type LoginResponse = userResponse & {
+  token: string;
+};
+
 export const userLoginHandler = async (req: Request, res: Response) => {
     type paramters = {
         email: string;
         password: string;
+        expiresInSeconds?: number;
     }
 
     const params: paramters = req.body;
     if (!params.email || !params.password) {
         throw new BadRequest("Missing required fields");
+    }
+
+    if (typeof params.expiresInSeconds === "undefined" || (typeof params.expiresInSeconds === "number") && params.expiresInSeconds > config.jwt.defaultDuration) {
+        params.expiresInSeconds = config.jwt.defaultDuration;
     }
 
     const user = await userLogin(params.email);
@@ -56,12 +66,16 @@ export const userLoginHandler = async (req: Request, res: Response) => {
         throw new Unauthorized("incorrect email or password");
     }
 
-    const ommitted: userResponse = {
+    const jwtString = makeJWT((user.id), params.expiresInSeconds, config.jwt.secret);
+    if (!jwtString) {
+        throw new Unauthorized("Invalid secret string or user id");
+    }
+
+    RespondWithJSON(res, 200, {
         id: user.id,
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-    };
-
-    RespondWithJSON(res, 200, ommitted);
+        token: jwtString,
+    } satisfies LoginResponse);
 }
