@@ -15,6 +15,13 @@
       "when": 1789909462718,
       "tag": "0001_sleepy_squadron_supreme",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790045657561,
+      "tag": "0002_perpetual_ultragirl",
+      "breakpoints": true
     }
   ]
 }

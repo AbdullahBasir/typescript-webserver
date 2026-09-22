@@ -4,7 +4,7 @@ import { metricsHandler } from './api/metrics.js';
 import { healthHandler } from './api/health.js';
 import { resetHandler } from './api/reset.js';
 import { createChirpHandler } from './api/create_chirps.js'
-import { createUserHandler } from './api/users.js'
+import { createUserHandler, userLoginHandler } from './api/users.js'
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -46,6 +46,10 @@ app.get('/api/chirps', (req, res, next) => {
 
 app.get('/api/chirps/:chirpId', (req, res, next) => {
     Promise.resolve(getSingleChirpHandler(req, res)).catch(next);
+});
+
+app.post('/api/login', (req, res, next) => {
+    Promise.resolve(userLoginHandler(req, res)).catch(next);
 });
 
 app.use(middlewareErrorHandler);
