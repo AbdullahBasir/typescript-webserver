@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { createUser, userLogin } from '../db/queries/users.js';
 import { RespondWithJSON } from './json.js';
 import { BadRequest, NotFound, Unauthorized } from '../errors.js';
-import { hashPassword, checkPasswordHash } from '../auth.js';
+import { hashPassword, checkPasswordHash } from '../auth/auth.js';
 import { userResponse } from './user_response.js';
 
 export const createUserHandler = async (req: Request, res: Response) => {
