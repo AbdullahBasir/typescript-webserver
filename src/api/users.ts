@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { createUser, updateUser, userLogin } from '../db/queries/users.js';
+import { createUser, updateUser, upgradeUserToRed, userLogin } from '../db/queries/users.js';
 import { RespondWithJSON } from './json.js';
-import { BadRequest, Unauthorized } from '../errors.js';
+import { BadRequest, NotFound, Unauthorized } from '../errors.js';
 import { hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken, validateJWT } from '../auth/auth.js';
 import { userResponse } from './user_response.js';
 import { config } from '../config.js'
@@ -32,6 +32,7 @@ export const createUserHandler = async (req: Request, res: Response) => {
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        isChirpyRed: user.isChirpyRed,
     };
 
     RespondWithJSON(res, 201, ommitted);
@@ -91,6 +92,7 @@ export const userLoginHandler = async (req: Request, res: Response) => {
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        isChirpyRed: user.isChirpyRed,
         token: jwtString,
         refreshToken: refreshToken,
     } satisfies LoginResponse);
@@ -122,5 +124,27 @@ export const updateUserHandler = async (req: Request, res: Response) => {
         createdAt: updatedUser.createdAt,
         updatedAt: updatedUser.updatedAt,
         email: updatedUser.email,
+        isChirpyRed: updatedUser.isChirpyRed,
     } satisfies userResponse)
+}
+
+export const upgradeUserToRedHandler = async (req: Request, res: Response) => {
+    type parameters = {
+        event: string;
+        data: {
+            userId: string;
+        };
+    }
+
+    const params: parameters = req.body;
+    if (!params.event || params.event !== "user.upgraded" || !params.data) {
+        res.status(204).send();
+        return;
+    }
+
+    const user = await upgradeUserToRed(params.data.userId);
+    if (!user) {
+        throw new NotFound("could not upgrade user, user not found");
+    }
+    res.status(204).send();
 }

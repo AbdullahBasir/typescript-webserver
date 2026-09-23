@@ -4,7 +4,7 @@ import { metricsHandler } from './api/metrics.js';
 import { healthHandler } from './api/health.js';
 import { resetHandler } from './api/reset.js';
 import { createChirpHandler } from './api/create_chirps.js'
-import { createUserHandler, updateUserHandler, userLoginHandler } from './api/users.js'
+import { createUserHandler, updateUserHandler, upgradeUserToRedHandler, userLoginHandler } from './api/users.js'
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -68,6 +68,10 @@ app.put(('/api/users'), (req, res, next) => {
 
 app.delete(('/api/chirps/:chirpId'), (req, res, next) => {
     Promise.resolve(deleteChirpHandler(req, res)).catch(next);
+});
+
+app.post('/api/polka/webhooks', (req, res, next) => {
+    Promise.resolve(upgradeUserToRedHandler(req, res)).catch(next);
 });
 
 app.use(middlewareErrorHandler);
