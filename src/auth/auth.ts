@@ -1,6 +1,6 @@
 import * as argon2 from 'argon2';
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { BadRequest, Unauthorized } from '../errors.js';
+import { Unauthorized } from '../errors.js';
 import { Request } from 'express';
 import { config } from '../config.js';
 import { randomBytes } from 'crypto'
@@ -58,12 +58,12 @@ export function validateJWT(tokenString: string, secret: string): string {
 export function getBearerToken(req: Request): string {
     const header = req.get('Authorization');
     if (!header) {
-        throw new BadRequest("Malformed authorization header");
+        throw new Unauthorized("Malformed authorization header");
     }
     
     const splitHeader = header.trim().replace(/\s+/g, " ").split(" ");
     if (splitHeader.length < 2 || splitHeader[0] !== "Bearer") {
-        throw new BadRequest("Malformed authorization header");
+        throw new Unauthorized("Malformed authorization header");
     }
 
     return splitHeader[1];

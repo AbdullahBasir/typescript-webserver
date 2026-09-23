@@ -4,7 +4,7 @@ import { metricsHandler } from './api/metrics.js';
 import { healthHandler } from './api/health.js';
 import { resetHandler } from './api/reset.js';
 import { createChirpHandler } from './api/create_chirps.js'
-import { createUserHandler, userLoginHandler } from './api/users.js'
+import { createUserHandler, updateUserHandler, userLoginHandler } from './api/users.js'
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -60,6 +60,10 @@ app.post('/api/refresh', (req, res, next) => {
 
 app.post('/api/revoke', (req, res, next) => {
     Promise.resolve(revokeJWTHandler(req, res)).catch(next);
+});
+
+app.put(('/api/users'), (req, res, next) => {
+    Promise.resolve(updateUserHandler(req, res)).catch(next);
 });
 
 app.use(middlewareErrorHandler);

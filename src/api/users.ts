@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { createUser, userLogin } from '../db/queries/users.js';
+import { createUser, updateUser, userLogin } from '../db/queries/users.js';
 import { RespondWithJSON } from './json.js';
 import { BadRequest, Unauthorized } from '../errors.js';
-import { hashPassword, checkPasswordHash, makeJWT, makeRefreshToken } from '../auth/auth.js';
+import { hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken, validateJWT } from '../auth/auth.js';
 import { userResponse } from './user_response.js';
 import { config } from '../config.js'
 import { CreateRefreshToken } from '../db/queries/refresh_tokens.js';
@@ -94,4 +94,33 @@ export const userLoginHandler = async (req: Request, res: Response) => {
         token: jwtString,
         refreshToken: refreshToken,
     } satisfies LoginResponse);
+}
+
+export const updateUserHandler = async (req: Request, res: Response) => {
+    type parameters = {
+        email: string;
+        password: string;
+    }
+
+    const params: parameters = req.body;
+    if (!params.email || !params.password) {
+        throw new BadRequest("Missing required fields");
+    }
+
+    const hashed = await hashPassword(params.password);
+
+    const bearerToken = getBearerToken(req);
+    const user = validateJWT(bearerToken, config.jwt.secret);
+
+    const updatedUser = await updateUser(params.email, hashed, user);
+    if (!updatedUser) {
+        throw new Unauthorized("could not update user");
+    }
+
+    RespondWithJSON(res, 200, {
+        id: updatedUser.id,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt,
+        email: updatedUser.email,
+    } satisfies userResponse)
 }
