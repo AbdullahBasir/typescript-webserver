@@ -10,7 +10,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { config } from "./config.js"
 import { getChirpsHandler } from './api/get_chirps.js';
-import { getSingleChirpHandler } from './api/get_single_chirp.js';
+import { deleteChirpHandler, getSingleChirpHandler } from './api/single_chirp.js';
 import { refreshJWTHandler } from './api/refresh.js';
 import { revokeJWTHandler } from './api/revoke.js';
 
@@ -64,6 +64,10 @@ app.post('/api/revoke', (req, res, next) => {
 
 app.put(('/api/users'), (req, res, next) => {
     Promise.resolve(updateUserHandler(req, res)).catch(next);
+});
+
+app.delete(('/api/chirps/:chirpId'), (req, res, next) => {
+    Promise.resolve(deleteChirpHandler(req, res)).catch(next);
 });
 
 app.use(middlewareErrorHandler);
