@@ -3,6 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { BadRequest, Unauthorized } from '../errors.js';
 import { Request } from 'express';
 import { config } from '../config.js';
+import { randomBytes } from 'crypto'
 
 export async function hashPassword(password: string): Promise<string> {
     try {
@@ -38,13 +39,17 @@ export function makeJWT(userID: string, expiresIn: number, secret: string): stri
 }
 
 export function validateJWT(tokenString: string, secret: string): string {
-    const token = jwt.verify(tokenString, secret)
-    if (typeof token === "string") {
-        throw new Error("Token is a string, expected object");
-    }
+    let userId: string
 
-    const userId = token.sub;
-    if (!userId) {
+    try {
+        const token = jwt.verify(tokenString, secret)
+        if (typeof token === "string") {
+            throw new Error("Token is a string, expected object");
+        }
+
+        userId = token.sub!;
+    } catch (err) {
+        console.error(err);
         throw new Unauthorized("token is invalid or has expired");
     }
     return userId;
@@ -62,4 +67,9 @@ export function getBearerToken(req: Request): string {
     }
 
     return splitHeader[1];
+}
+
+export function makeRefreshToken(): string {
+    const encodedstring = randomBytes(32);
+    return encodedstring.toString('hex');
 }

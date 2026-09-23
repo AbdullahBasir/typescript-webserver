@@ -2,9 +2,10 @@ import { Request, Response } from 'express';
 import { createUser, userLogin } from '../db/queries/users.js';
 import { RespondWithJSON } from './json.js';
 import { BadRequest, Unauthorized } from '../errors.js';
-import { hashPassword, checkPasswordHash, getBearerToken, makeJWT } from '../auth/auth.js';
+import { hashPassword, checkPasswordHash, makeJWT, makeRefreshToken } from '../auth/auth.js';
 import { userResponse } from './user_response.js';
 import { config } from '../config.js'
+import { CreateRefreshToken } from '../db/queries/refresh_tokens.js';
 
 export const createUserHandler = async (req: Request, res: Response) => {
     type parameters = {
@@ -38,22 +39,18 @@ export const createUserHandler = async (req: Request, res: Response) => {
 
 type LoginResponse = userResponse & {
   token: string;
+  refreshToken: string;
 };
 
 export const userLoginHandler = async (req: Request, res: Response) => {
-    type paramters = {
+    type parameters = {
         email: string;
         password: string;
-        expiresInSeconds?: number;
     }
 
-    const params: paramters = req.body;
+    const params: parameters = req.body;
     if (!params.email || !params.password) {
         throw new BadRequest("Missing required fields");
-    }
-
-    if (typeof params.expiresInSeconds === "undefined" || (typeof params.expiresInSeconds === "number") && params.expiresInSeconds > config.jwt.defaultDuration) {
-        params.expiresInSeconds = config.jwt.defaultDuration;
     }
 
     const user = await userLogin(params.email);
@@ -66,9 +63,27 @@ export const userLoginHandler = async (req: Request, res: Response) => {
         throw new Unauthorized("incorrect email or password");
     }
 
-    const jwtString = makeJWT((user.id), params.expiresInSeconds, config.jwt.secret);
+    const jwtString = makeJWT((user.id), config.jwt.defaultDuration, config.jwt.secret);
     if (!jwtString) {
         throw new Unauthorized("Invalid secret string or user id");
+    }
+
+    const refreshToken = makeRefreshToken();
+    if (!refreshToken) {
+        throw new Error("refresh token was not created");
+    }
+
+    const date = new Date();
+    const expiresAt = new Date(date.getTime() + 60 * 24 * 60 * 60 * 1000)
+
+    const refresh = await CreateRefreshToken({
+        userId: user.id,
+        token: refreshToken,
+        expiresAt: expiresAt,
+        revokedAt: null,
+    });
+    if (!refresh) {
+        throw new Unauthorized("refresh token not created");
     }
 
     RespondWithJSON(res, 200, {
@@ -77,5 +92,6 @@ export const userLoginHandler = async (req: Request, res: Response) => {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         token: jwtString,
+        refreshToken: refreshToken,
     } satisfies LoginResponse);
 }
