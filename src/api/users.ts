@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { createUser, updateUser, upgradeUserToRed, userLogin } from '../db/queries/users.js';
 import { RespondWithJSON } from './json.js';
 import { BadRequest, NotFound, Unauthorized } from '../errors.js';
-import { hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken, validateJWT } from '../auth/auth.js';
+import { hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken, validateJWT, getAPIKey } from '../auth/auth.js';
 import { userResponse } from './user_response.js';
 import { config } from '../config.js'
 import { CreateRefreshToken } from '../db/queries/refresh_tokens.js';
@@ -134,6 +134,11 @@ export const upgradeUserToRedHandler = async (req: Request, res: Response) => {
         data: {
             userId: string;
         };
+    }
+
+    const polkaKey = getAPIKey(req);
+    if (polkaKey !== config.api.polkaKey) {
+        throw new Unauthorized("not authorized to upgrade user");
     }
 
     const params: parameters = req.body;

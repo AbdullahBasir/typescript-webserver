@@ -73,3 +73,17 @@ export function makeRefreshToken(): string {
     const encodedstring = randomBytes(32);
     return encodedstring.toString('hex');
 }
+
+export function getAPIKey(req: Request): string {
+    const header = req.get('Authorization');
+    if (!header) {
+        throw new Unauthorized("Malformed authorization header");
+    }
+
+    const splitHeader = header.trim().replace(/\s+/g, " ").split(" ");
+    if (splitHeader.length < 2 || splitHeader[0] !== "ApiKey") {
+        throw new Unauthorized("Malformed authorization header");
+    }
+
+    return splitHeader[1];
+}
