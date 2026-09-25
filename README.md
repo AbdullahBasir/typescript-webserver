@@ -2,7 +2,7 @@
 
 ### Notes:
 
-##### Setup:
+#### Setup:
 
 - Install nvm to manage node.js versions across projects ```nvm install <version>```, then store the wanted node version in a .nvmrc file in the root and select it with ```nvm use```.
 
@@ -14,7 +14,7 @@
 
 - Update package.json to use ES modules ```"type": "module"``` so that imports and exports can be used in modern JavaScript standard, ```import x from 'module'``` and ```export const x = ...```.
 
-##### Server:
+#### Server:
 
 - Install express (web framework: a toolkit that offers pre-built components such as Request/response handling) and its type definitions to build the webserver and Api ```npm install express``` ```npm install -D @types/express```.
 
@@ -60,7 +60,7 @@ import { exampleHandler } from './api/example.js';
 app.post("/examples", exampleHandler);
 ```
 
-##### Storage:
+#### Storage:
 
 - PostgreSQL is used for the database and handles data storage and retrieval and is run on its own server. ```brew install postgresql@<version-number>``` then start the server ```brew services start postgresql@<version-number>```.
 
@@ -79,7 +79,7 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DATABASE_URL!, // the connection string that connects to the database "psql 'postgres://<username>:@localhost:<port>/<database-name>?sslmode=disable'"
   },
-  out: './drizzle',
+  out: '<outlet-folder-for-migrations>', // where migration files should be stored in the project folder
 });
 ```
 
@@ -87,7 +87,7 @@ export default defineConfig({
 
 ```typescript
 import { pgTable, timestamp, varchar, uuid } from "drizzle-orm/pg-core";
-// the types from drizzle are similar to plain sql such as timestamp for a date or varchar for a limited string
+// the types from drizzle are similar to plain sql such as timestamp for a date or varchar string
 
 export const examples = pgTable("examples", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -116,7 +116,7 @@ import postgres from 'postgres';
 import * as schema from "<path-to-schema.js>";
 
 const client = postgres(process.env.DATABASE_URL!); // connection to database
-export const db = drizzle(client, {schema}); // allowing queries to database to be written in typescript and later converted to sql via the ORM
+export const db = drizzle(client, {schema}); // allowing queries to be written in typescript and later converted to sql via the ORM
 ```
 
 ```sql
@@ -143,4 +143,31 @@ export async function createExample(example: NewExample) {
     .returning(); // used when the inserted or changed values of the table need to be returned
   return result;
 }
+```
+
+#### Testing
+
+- install vitest ```npm i -D vitest@<version>``` and add its script command to scripts key in package.json ```"test": "vitest --run"``` so that it can be run with ```npm run test```.
+
+- Tests are made in this format:
+
+```typescript
+// sum.ts
+export function sum(a: number, b: number): number {
+  return a + b;
+}
+
+// sum.test.ts
+import { describe, it, expect } from 'vitest';
+import { sum } from './sum';
+
+describe('sum', () => { // describe groups related tests together
+  it('adds two positive numbers', () => { // it defines a single test case
+    expect(sum(2, 3)).toBe(5); // expect(...) is the testing value and .toBe() is a matcher
+  });
+
+  it('handles negative numbers', () => {
+    expect(sum(-1, -1)).toBe(-2); // other matchers include .toEqual(), .toContain(), .toThrow()
+  });
+});
 ```
